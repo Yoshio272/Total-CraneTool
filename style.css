@@ -373,24 +373,82 @@ details.spec-fold[open] > summary::before { content:'▾ '; }
 .print-table .pt-l { color:#333; width:46%; }
 .print-table .pt-v { text-align:right; font-weight:600; }
 
-/* ===== レスポンシブ（3段） ===== */
-/* タブレット: 入力 → 断面図 → 結果 の縦並び */
-@media (max-width:1024px) and (min-width:769px) {
-  .main-layout { flex-direction:column; height:auto; overflow:visible; }
-  .left-panel, .right-panel, .center-panel { width:100% !important; border:none; border-bottom:1px solid var(--c-line); }
+/* ===== レスポンシブ ===== */
+/* 共通（1024px以下）: 固定高さ・overflow:hidden を解除してページ全体をスクロール可能にする。
+   #app-root は script.js が inline style で height:100%/overflow:hidden を指定しているため !important で上書きする */
+@media (max-width:1024px) {
+  html, body { height:auto !important; min-height:100%; overflow-x:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #root, #app-root { height:auto !important; min-height:100vh; overflow:visible !important; display:block !important; }
+  .main-layout { display:flex; flex-direction:column; height:auto; min-height:0; overflow:visible; }
   .splitter { display:none; }
-  .center-body { flex-direction:column; }
-  .control-section { width:100% !important; border:none; border-bottom:1px solid var(--c-line); overflow:visible; }
+  .left-panel, .right-panel, .center-panel {
+    width:100% !important; height:auto; min-height:0; overflow:visible;
+    border:none; border-bottom:1px solid var(--c-line); }
+  .center-body { flex-direction:column; height:auto; min-height:0; overflow:visible; }
+  .control-section { width:100% !important; min-width:0; height:auto; overflow:visible; border:none; border-bottom:1px solid var(--c-line); }
+  .diagram-section { height:auto; min-height:0; overflow:visible; }
+  .svg-area { height:auto; min-height:0; padding:8px 10px; overflow:visible; display:block; }
+  .svg-area svg { width:100% !important; height:auto !important; max-height:none; }
+  /* 機種名＋判定バッジを画面上部に固定してスクロール中も判定を確認できるようにする */
+  .diagram-header { position:sticky; top:0; z-index:50; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+}
+
+/* タブレット（769〜1024px）: 入力 → 断面図 → 結果 の縦並び */
+@media (max-width:1024px) and (min-width:769px) {
   .svg-area { min-height:360px; }
 }
-/* スマホ: 入力 → 断面図 → 判定 → 詳細 → おすすめ の縦並び（タブ廃止・全展開） */
+
+/* スマホ（768px以下）: 入力 → 機種 → 建物 → 揚重条件 → 断面図 → おすすめ → 判定 の縦並び（タブ廃止・全展開） */
 @media (max-width:768px) {
-  .main-layout { flex-direction:column; height:auto; overflow:visible; }
-  .left-panel, .right-panel, .center-panel { width:100% !important; border:none; border-bottom:1px solid var(--c-line); }
-  .splitter { display:none; }
-  .header-meta { display:none; }
-  .center-body { flex-direction:column; }
-  .control-section { width:100% !important; border:none; border-bottom:1px solid var(--c-line); overflow:visible; }
-  .svg-area { min-height:300px; }
-  .right-panel { overflow:visible; }
+  /* ヘッダー: 現場名・作成日・作成者を2段目に折り返して表示（PDF出力に必要） */
+  .app-header { flex-wrap:wrap; height:auto; min-height:46px; padding:8px 12px; row-gap:8px; }
+  .app-header-title { flex:1 1 auto; }
+  .header-meta { display:flex; flex:1 1 100%; flex-wrap:wrap; gap:8px; overflow:visible; order:10; }
+  .header-meta-field { flex:1 1 140px; min-width:0; }
+  .header-meta-field > input { flex:1 1 auto; width:100%; min-width:0; font-size:16px; padding:8px 10px; }
+  .print-btn { min-height:40px; padding:8px 14px; font-size:14px; }
+
+  /* パネル余白 */
+  .left-panel, .right-panel { padding:14px 14px 18px; }
+  .control-section { padding:12px 14px; }
+  .section-divider { margin-top:14px; }
+
+  /* 入力欄: 16px以上にして iOS のフォーカス時自動ズームを防ぐ */
+  .input-row { gap:8px; margin-bottom:10px; }
+  .input-row-label { font-size:14px; }
+  .input-row-input { width:120px; font-size:16px; padding:10px 10px; min-height:44px; }
+  .input-row-unit { font-size:13px; width:20px; }
+  .btn-search { min-height:44px; font-size:15px; }
+
+  /* 機種一覧 */
+  .crane-list-item { padding:11px 12px; font-size:14px; min-height:44px; margin-bottom:6px; }
+  .selected-crane-box { font-size:13px; }
+
+  /* ボタン類: タップ領域 40px 以上 */
+  .building-btn, .boom-btn, .jib-seg-btn, .jib-angle-btn, .tab-btn, .link-btn {
+    min-height:40px; padding:8px 12px; font-size:14px; }
+  .boom-btn-group, .jib-seg-group, .jib-angle-group, .hook-btn-group { gap:6px; }
+  .hook-btn { min-height:44px; min-width:110px; padding:7px 10px; }
+  .hook-btn > div:first-child { font-size:13px !important; }
+  .hook-btn > div:last-child { font-size:11px !important; }
+  .control-label { font-size:13px; }
+  .control-group { gap:6px; margin-bottom:10px; }
+  .sl850-panel-title { font-size:14px; }
+  input[type=range] { height:32px; }
+
+  /* 情報バー */
+  .info-card { min-width:calc(50% - 4px); padding:6px 10px; }
+  .info-card-label { font-size:11px; }
+  .info-card-value { font-size:14px; }
+
+  /* 断面図 */
+  .svg-area { min-height:0; }
+  .diagram-title { font-size:15px; }
+  .badge { font-size:12px; padding:4px 10px; }
+
+  /* 右パネル（判定・おすすめ） */
+  .result-card { min-height:52px; }
+  .judge-detail-row { font-size:13px; }
+  .spec-fold summary { font-size:14px; padding:8px 0; }
+  .mobile-sec-label { font-size:15px; }
 }
